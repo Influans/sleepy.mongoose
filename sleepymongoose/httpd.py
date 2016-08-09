@@ -51,7 +51,7 @@ class MongoServer(HTTPServer):
         fpem = MongoServer.pem
         ctx.use_privatekey_file(fpem)
         ctx.use_certificate_file(fpem)
-        
+
         self.socket = SSL.Connection(ctx, socket.socket(self.address_family,
                                                         self.socket_type))
         self.server_bind()
@@ -76,8 +76,8 @@ class MongoHTTPRequest(BaseHTTPRequestHandler):
     jsonp_callback = None;
 
     def _parse_call(self, uri):
-        """ 
-        this turns a uri like: /foo/bar/_query into properties: using the db 
+        """
+        this turns a uri like: /foo/bar/_query into properties: using the db
         foo, the collection bar, executing a query.
 
         returns the database, collection, and action
@@ -117,7 +117,7 @@ class MongoHTTPRequest(BaseHTTPRequestHandler):
                 self.jsonp_callback = args["callback"][0]
             else:
                 self.jsonp_callback = args.getvalue("callback")
-                
+
         func = getattr(MongoHandler.mh, func_name, None)
         if callable(func):
             self.send_response(200, 'OK')
@@ -134,12 +134,12 @@ class MongoHTTPRequest(BaseHTTPRequestHandler):
             return
         else:
             self.send_error(404, 'Script Not Found: '+uri)
-            return            
-        
+            return
+
     def prependJSONPCallback(self, str):
         jsonp_output = '%s(' % self.jsonp_callback + str + ')'
         self.wfile.write( jsonp_output )
-        
+
     # TODO: check for ..s
     def process_uri(self, method):
         if method == "GET":
@@ -175,10 +175,10 @@ class MongoHTTPRequest(BaseHTTPRequestHandler):
         return (uri, args, type)
 
 
-    def do_GET(self):        
+    def do_GET(self):
         (uri, args, type) = self.process_uri("GET")
 
- 
+
         # serve up a plain file
         if len(type) != 0:
             if type in MongoHTTPRequest.mimetypes and os.path.exists(MongoHTTPRequest.docroot+uri):
@@ -224,7 +224,7 @@ class MongoHTTPRequest(BaseHTTPRequestHandler):
 
         if MongoServer.pem == None:
             try:
-                server = HTTPServer(('', port), MongoHTTPRequest)
+                server = HTTPServer(('127.0.0.1', port), MongoHTTPRequest)
             except socket.error, (value, message):
                 if value == 98:
                     print "could not bind to localhost:%d... is sleepy.mongoose already running?\n" % port
@@ -236,7 +236,7 @@ class MongoHTTPRequest(BaseHTTPRequestHandler):
             server = MongoServer(('', port), MongoHTTPSRequest)
 
         MongoHandler.mh = MongoHandler(MongoHTTPRequest.mongos)
-        
+
         print "listening for connections on http://localhost:27080\n"
         try:
             server.serve_forever()
@@ -286,4 +286,3 @@ def main():
     MongoHTTPRequest.serve_forever(27080)
 if __name__ == "__main__":
     main()
-
